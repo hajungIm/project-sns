@@ -53,13 +53,55 @@ public class UserControllerTest {
         String userName = "userName";
         String password = "password";
 
-        when(userService.join(userName, password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
+        when(userService.join(userName, password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME));
 
         mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password)))
                 ).andDo(print())
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void 로그인() throws Exception {
+        String userName = "userName";
+        String password = "password";
+
+        when(userService.login(userName, password)).thenReturn("test_token");
+
+        mockMvc.perform(post("/api/v1/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
+                ).andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void 로그인시_회원가입이_안된_userName을_입력할경우_에러반환() throws Exception {
+        String userName = "userName";
+        String password = "password";
+
+        when(userService.login(userName, password)).thenThrow(new SnsApplicationException(ErrorCode.USER_NOT_FOUND));
+
+        mockMvc.perform(post("/api/v1/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
+                ).andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void 로그인시_틀린_password를_입력할경우_에러반환() throws Exception {
+        String userName = "userName";
+        String password = "password";
+
+        when(userService.login(userName, password)).thenThrow(new SnsApplicationException(ErrorCode.INVALID_PASSWORD));
+
+        mockMvc.perform(post("/api/v1/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password)))
+                ).andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
 }
