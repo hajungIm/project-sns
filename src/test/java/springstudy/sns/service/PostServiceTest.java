@@ -113,4 +113,47 @@ public class PostServiceTest {
                 .isInstanceOf(SnsApplicationException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PERMISSION);
     }
+
+    @Test
+    void 포스트삭제가_성공한경우() {
+        String username = "username";
+        Integer postId = 1;
+
+        PostEntity postEntity = PostEntityFixture.get(username, postId, 1);
+        UserEntity userEntity = postEntity.getUser();
+
+        when(userEntityRepository.findByUserName(username)).thenReturn(Optional.of(userEntity));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+        assertThatCode(() -> postService.delete(username, postId)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void 포스트삭제시_포스트가_존재하지않는_경우() {
+        String username = "username";
+        Integer postId = 1;
+
+        when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(mock(UserEntity.class)));
+        when(postEntityRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> postService.delete(username, postId))
+                .isInstanceOf(SnsApplicationException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+    }
+
+    @Test
+    void 포스트삭제시_권한이_없는_경우() {
+        String username = "username";
+        Integer postId = 1;
+
+        PostEntity postEntity = PostEntityFixture.get(username, postId, 1);
+        UserEntity writer = UserEntityFixture.get("writer", "password", 2);
+
+        when(userEntityRepository.findByUserName(username)).thenReturn(Optional.of(writer));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+
+        assertThatThrownBy(() -> postService.delete(username, postId))
+                .isInstanceOf(SnsApplicationException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PERMISSION);
+    }
 }
