@@ -156,4 +156,20 @@ public class PostServiceTest {
                 .isInstanceOf(SnsApplicationException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PERMISSION);
     }
+
+    @Test
+    void 피드목록요청이_성공한경우() {
+        Pageable pageable = mock(Pageable.class);
+        when(postEntityRepository.findAll(pageable)).thenReturn(Page.empty());
+        assertThatCode(() -> postService.list(pageable)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void 내피드목록요청이_성공한경우() {
+        Pageable pageable = mock(Pageable.class);
+        UserEntity user = mock(UserEntity.class);
+        when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
+        when(postEntityRepository.findAllByUser(user, pageable)).thenReturn(Page.empty());
+        assertThatCode(() -> postService.my("", pageable)).doesNotThrowAnyException();
+    }
 }
