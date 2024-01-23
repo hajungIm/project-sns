@@ -31,4 +31,11 @@ public class PostController {
         postService.create(request.getTitle(), request.getBody(), authentication.getName());
         return Response.success();
     }
+
+    @PutMapping("/{postId}")
+    public Response<PostResponse> modify(@PathVariable Integer postId, @RequestBody PostModifyRequest request,
+                                         Authentication authentication) {
+        Post post = postService.modify(request.getTitle(), request.getBody(), authentication.getName(), postId);
+        return Response.success(PostResponse.fromPost(post));
+    }
 }
